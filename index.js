@@ -27,7 +27,7 @@ app.use(
     parameterLimit: 50000,
   })
 );
-const port = process.env.PORT;
+const port = process.env.PORT || 8000;
 
 // var corsOptions = {
 //   origin: [
@@ -42,12 +42,12 @@ const port = process.env.PORT;
 // app.use(cors(corsOptions));
 app.use(cors());
 
-// app.get("/", (req, res) => {
-//   res.sendFile(path.join(__dirname, "/static/index.html"));
-// });
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "/static/index.html"));
+});
 
 app.listen(port, () => {
-  console.log("Great! Happy Hacking");
+  console.log(`Great! Happy Hacking with port ${port}`);
 });
 // Rouote for My Blog
 // app.options("/api/blogpost/write", (req, res) => {
