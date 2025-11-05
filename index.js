@@ -10,6 +10,9 @@ const path = require("path");
 connectToMongoDB();
 
 const app = express();
+
+app.use(express.json());
+app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(
@@ -40,7 +43,6 @@ const port = process.env.PORT || 8000;
 // };
 
 // app.use(cors(corsOptions));
-app.use(cors());
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "/static/index.html"));
@@ -57,9 +59,6 @@ app.listen(port, () => {
 //   res.status(200).send();
 // });
 app.use("/api/admin", require("./routes/admin"));
+app.use("/api/loanProcessor", require("./routes/loan"));
+app.use("/api/loanProcessor/v2", require("./routes/loanV2"));
 // app.use("/api/blogpost", require("./routes/blogdata"));
-// app.use("/api/contact", require("./routes/contact"));
-// app.use("/api/admin", require("./routes/admin"));
-// app.use("/api/student", require("./routes/student"));
-// app.use("/api/mentor", require("./routes/mentor"));
-// app.use("/api/storekeeper", require("./routes/storekeeper"));

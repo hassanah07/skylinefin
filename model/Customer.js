@@ -3,34 +3,104 @@ const { Schema } = mongoose;
 
 const CustomerSchema = new Schema(
   {
-    mobile: {
+    customerId: {
+      type: String,
+      required: true,
+    },
+    occuType: {
+      type: String,
+      required: true,
+    },
+    occuType: {
+      type: String,
+      required: true,
+    },
+
+    empType: {
+      type: String,
+    },
+    orgType: {
+      type: String,
+    },
+    BussType: {
+      type: String,
+    },
+    commuType: {
+      type: String,
+    },
+    gstNo: {
+      type: String,
+    },
+    fullName: {
+      type: String,
+      required: true,
+    },
+    fatherName: {
+      type: String,
+      required: true,
+    },
+    motherName: {
+      type: String,
+      required: true,
+    },
+    spouseName: {
+      type: String,
+      required: true,
+    },
+    dob: {
+      type: String,
+      required: true,
+    },
+    dependentNo: {
       type: Number,
-      required: true
+      required: true,
     },
-    name: {
+    religion: {
       type: String,
-      required: true
-    },
-    addedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "StoreKeeper"
-    },
-    addedAt: {
-      type: String,
-      required: true
-    },
-    age: {
-      type: String,
-      required: true
+      required: true,
     },
     gender: {
       type: String,
-      required: true
+      required: true,
     },
-    address: {
+    education: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
+    passport: {
+      type: String,
+    },
+    passportExp: {
+      type: String,
+    },
+    driving: {
+      type: String,
+    },
+    drivingExp: {
+      type: String,
+    },
+    pan: {
+      type: String,
+      required: true,
+    },
+    aadhar: {
+      type: String,
+      required: true,
+    },
+    voter: {
+      type: String,
+      required: true,
+    },
+    upi: {
+      type: String,
+    },
+    email: {
+      type: String,
+    },
+    mobile: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );

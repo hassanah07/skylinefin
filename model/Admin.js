@@ -22,6 +22,9 @@ const AdminSchema = new Schema(
     otp: {
       type: Number,
     },
+    otpExpiry: {
+      type: Date,
+    },
     image: {
       type: String,
       default:

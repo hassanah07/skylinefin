@@ -9,8 +9,7 @@ const fetchUser = (req, res, next) => {
       if (!data) {
         res.status(403).json({ msg: "Access Denied" });
       } else {
-        req.user = data.user;
-        // res.status(200).json({ msg: "Access Granted" });
+        req.admin = data.admin;
         next();
       }
     }
