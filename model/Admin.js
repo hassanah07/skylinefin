@@ -38,6 +38,18 @@ const AdminSchema = new Schema(
       type: Boolean,
       default: 0,
     },
+    address: {
+      type: Boolean,
+      default: 0,
+    },
+    landmark: {
+      type: Boolean,
+      default: 0,
+    },
+    area: {
+      type: Boolean,
+      default: 0,
+    },
     login: {
       type: Boolean,
       default: false,

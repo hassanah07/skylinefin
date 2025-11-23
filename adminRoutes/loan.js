@@ -904,8 +904,8 @@ router.post("/loanStepVIII", fetchAdmin, async (req, res) => {
   }
 });
 
-// send emi data to users email id and save & update EMI Data to Database
-router.post("/sendEmail", fetchAdmin, async (req, res) => {
+// send and Save emi data: to users email id and save & update EMI Data to Database
+router.post("/sendEmailTesting", fetchAdmin, async (req, res) => {
   const userId = req.admin.id;
   // console.log(req.body);
   try {
@@ -922,6 +922,7 @@ router.post("/sendEmail", fetchAdmin, async (req, res) => {
     const findCustomerId = await Loan.findOne({
       loanAccountNumber: req.body.loanAccountNumber,
     });
+    const customerId = findCustomerId.customerId;
 
     // lets Get Email Id from customer table
     const getEmailId = await Customer.findOne({
@@ -1045,6 +1046,7 @@ router.post("/sendEmail", fetchAdmin, async (req, res) => {
         if (!saveCustomerEmi) {
           saveCustomerEmi = await Emi.create({
             loanAccountNumber: req.body.loanAccountNumber,
+            customerId: customerId,
             loanAmount: totalPrincipal,
             interest: req.body.interest,
             tenure: req.body.tenure,
@@ -1084,7 +1086,105 @@ router.post("/sendEmail", fetchAdmin, async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 });
+// testing data set
+router.post("/sendEmail", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  // console.log(req.body);
+  try {
+    let admin = await Admin.findById(userId);
+    if (admin === null) {
+      return res.status(400).json({
+        msg: "Access Denied",
+        type: "error",
+        status: false,
+        login: false,
+      });
+    }
+    // lets find customerid from Loan
+    const findCustomerId = await Loan.findOne({
+      loanAccountNumber: req.body.loanAccountNumber,
+    });
+    const customerId = findCustomerId.customerId;
+    const bodyReq = req.body;
+    const emiData = req.body.data;
 
+    // compute a base date = same day next month
+    const today = new Date();
+    const baseNextMonth = new Date(
+      today.getFullYear(),
+      today.getMonth() + 1, // +1 -> next month
+      today.getDate()
+    );
+    const emiPaymentArray = bodyReq.data.map((item, index) => {
+      // dueDate for this EMI = baseNextMonth + index months
+      const dueDate = new Date(
+        baseNextMonth.getFullYear(),
+        baseNextMonth.getMonth() + index,
+        baseNextMonth.getDate()
+      );
+
+      return {
+        emiNumber: `${index + 1}`,
+        txnNumber: `TXN${Date.now()}_${index + 1}`, // safer unique-ish id
+        month: item.m,
+        opening: item.opening,
+        emi: item.emi,
+        principal: item.principal,
+        interest: item.interest,
+        // store GST as a number rounded to 2 decimals
+        gstOnInterest: Math.round(item.interest * 0.18 * 100) / 100,
+        closing: item.closing,
+        dueDate,
+        status: false,
+      };
+    });
+    // extract totals start
+    const totalPrincipal = emiData.reduce(
+      (sum, item) => sum + item.principal,
+      0
+    );
+    const totalInterest = emiData.reduce((sum, item) => sum + item.interest, 0);
+    const netPayable = totalPrincipal + totalInterest;
+    let saveCustomerEmi = await Emi.findOne({
+      loanAccountNumber: req.body.loanAccountNumber,
+    });
+    if (saveCustomerEmi) {
+      saveCustomerEmi = await Emi.findOneAndUpdate(
+        { loanAccountNumber: req.body.loanAccountNumber },
+        {
+          $set: {
+            loanAmount: totalPrincipal,
+            interest: req.body.interest,
+            tenure: req.body.tenure,
+            totalInterest: totalInterest,
+            payableAmount: netPayable,
+            type: req.body.type,
+            schedule: req.body.data, //schedule array
+            emiPayment: emiPaymentArray, //emi payment array
+          },
+        }
+      );
+      res.status(200).json({ msg: "EMI Data Updated and Sent okk" });
+    } else {
+      saveCustomerEmi = await Emi.create({
+        loanAccountNumber: req.body.loanAccountNumber,
+        customerId: customerId,
+        loanAmount: totalPrincipal,
+        interest: req.body.interest,
+        tenure: req.body.tenure,
+        totalInterest: totalInterest,
+        payableAmount: netPayable,
+        type: req.body.type,
+        schedule: req.body.data, //schedule array
+        emiPayment: emiPaymentArray, //emi payment array
+      });
+      res.status(200).json({ msg: "EMI Data Updated and Sent ok" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal Server Error");
+  }
+});
 // get EMI Data from DATABASE
 router.post("/getCustomerAmortizationData", fetchAdmin, async (req, res) => {
   const userId = req.admin.id;

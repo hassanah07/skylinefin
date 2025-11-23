@@ -71,4 +71,9 @@ router.post("/getEmiDataWithLoanId", fetchAdmin, async (req, res) => {
   }
 });
 
+router.get("/emiData", async (req, res) => {
+  const emiData = await Emi.find();
+  console.log("first")
+  res.json(emiData);
+});
 module.exports = router;

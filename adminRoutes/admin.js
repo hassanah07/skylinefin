@@ -199,5 +199,97 @@ router.post("/emailValidation", async (req, res) => {
       .json({ msg: "Internal Server Error", type: "error" });
   }
 });
+// change password
+router.post("/changePassword", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  try {
+    let authUser = await Admin.findById(userId);
+    if (req.admin.otp !== authUser.otp)
+      return res.status(403).json({ msg: "Access Denied L1", login: true });
+    if (!authUser) {
+      res.status(200).json({ msg: "Access Denied L2", login: true });
+    } else {
+      const currentPassword = req.body.currentPassword;
+      const userPassword = req.body.newPassword;
+      const isMatch = await bcrypt.compare(currentPassword, authUser.password);
+
+      if (!isMatch) {
+        res.status(200).json({ msg: "Access Denied L3", login: true });
+      } else {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(userPassword, salt);
+        authUser = await Admin.findByIdAndUpdate(authUser._id, {
+          $set: {
+            password: hashedPassword,
+          },
+        });
+        res.status(200).json({ msg: "Password Changed!", login: false });
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: "Internal Server Error", login: true });
+  }
+});
+router.post("/resetPassword", async (req, res) => {
+  const userId = req.body.email;
+  try {
+    let authUser = await Admin.findOne({ email: userId });
+    if (!authUser) {
+      res.status(404).json({ msg: "Access Denied L1", login: false });
+    } else {
+      const salt = await bcrypt.genSalt(10);
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let password = "";
+      const length = 12;
+      for (let i = 0; i < length; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      const hashedPassword = await bcrypt.hash(password, salt);
+      // email shotting process start
+      try {
+        const transporter = nodemailer.createTransport({
+          host: "smtp.forwardemail.net",
+          port: 465,
+          secure: true,
+          service: "gmail",
+          auth: {
+            user: process.env.MAILER_USERID,
+            pass: process.env.MAILER_PASSWORD,
+          },
+        });
+        async function main() {
+          const info = await transporter.sendMail({
+            from: '"Server Mail"servermail@noreply.com',
+            to: req.body.email,
+            subject: `New Login Password`,
+            html: `
+        <h2><b>Hello Admin! Your Login OTP Has Been Generated and is valid for Two (02) Minutes</b></h2>
+        <b>New Login Password :</b><b><u>${password}</u></b><br />
+        <small>This is an auto generated email for Extra security</small>
+        `,
+          });
+
+          authUser = await Admin.findByIdAndUpdate(authUser._id, {
+            $set: {
+              password: hashedPassword,
+            },
+          });
+          res
+            .status(200)
+            .json({ msg: "New Password Sent to Email!", login: true });
+        }
+        main().catch((error) => {
+          res.status(500).json({ msg: "Unable To Send Email", type: "error" });
+        });
+      } catch (error) {
+        res.status(500).json({ msg: "E-Mail Server Error", type: "error" });
+      }
+      // email shotting process end
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ msg: "Internal Server Error", login: false });
+  }
+});
 
 module.exports = router;

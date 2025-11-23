@@ -1,64 +1,59 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const EmiSchema = new Schema(
+const RecurringSchema = new Schema(
   {
-    loanAccountNumber: {
-      type: Number,
-      required: true,
-    },
     customerId: {
       type: Number,
       required: true,
     },
-    loanAmount: {
+    recurringId: {
       type: Number,
       required: true,
     },
-    interest: {
+    email: {
       type: Number,
       required: true,
     },
-    tenure: {
+    amount: {
       type: Number,
       required: true,
     },
-    totalInterest: {
+    frequency: {
       type: Number,
       required: true,
     },
-    payableAmount: {
+    cashfree: {
       type: Number,
       required: true,
     },
-    type: {
+    repaymentPeriod: {
+      type: Number,
+      required: true,
+    },
+    interestPercentage: {
       type: String,
       required: true,
     },
     schedule: [],
-    emiPayment: [
+    recurringPayment: [
       {
-        emiNumber: { type: String },
+        recurringNumber: { type: String },
         txnNumber: { type: String },
         month: { type: Number },
         opening: { type: Number },
-        emi: { type: Number },
+        recurring: { type: Number },
         principal: { type: Number },
         interest: { type: Number },
-        gstOnInterest: { type: Number },
+        fine: { type: Number },
         closing: { type: Number },
         dueDate: { type: String },
-        painOn: { type: String },
         status: { type: Boolean, default: false },
       },
     ],
-    // dueDate: {
-    //   type: String,
-    //   required: true,
-    // },
   },
   { timestamps: true }
 );
 
-const Emi = mongoose.model("Emi", EmiSchema);
+const Recurring = mongoose.model("Recurring", RecurringSchema);
 module.exports = Emi;
