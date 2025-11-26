@@ -48,7 +48,7 @@ const EmiSchema = new Schema(
         gstOnInterest: { type: Number },
         closing: { type: Number },
         dueDate: { type: String },
-        painOn: { type: String },
+        painOn: { type: Date },
         status: { type: Boolean, default: false },
       },
     ],

@@ -3,7 +3,7 @@ const mongoURI = process.env.MONGO_URI;
 const connectToMongoDB = async () => {
   try {
     const connect = await mongoose.connect(mongoURI);
-    console.log(`MongoDB connected: ${connect.connection.host}`);
+    console.log(`MongoDB connected: connect.connection.host`);
     if (!connect) {
       console.log("problem connecting to Mongoose");
     } else {

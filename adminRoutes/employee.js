@@ -164,7 +164,7 @@ router.post("/login", async (req, res) => {
 });
 // get logged in admin details
 // get user profile from server
-router.post("/getadmindetail", fetchAdmin, async (req, res) => {
+router.post("/getEmployee", fetchAdmin, async (req, res) => {
   const userId = req.admin.id;
   try {
     const authUser = await Admin.findById(userId).select("-password");
@@ -173,7 +173,19 @@ router.post("/getadmindetail", fetchAdmin, async (req, res) => {
     if (!authUser) {
       res.status(200).json({ msg: "Access Denied", login: false });
     } else {
-      res.status(200).json({ authUser, login: true });
+      const employee = await Employee.findById(req.body.employeeId);
+      if (!employee) {
+        res
+          .status(200)
+          .json({ msg: "Employee is missing", login: true, redirect: true });
+      } else {
+        res.status(200).json({
+          msg: "Employee Found",
+          login: true,
+          redirect: false,
+          employee,
+        });
+      }
     }
   } catch (error) {
     return res.status(500).json({ msg: "Internal Server Error" });
@@ -192,6 +204,78 @@ router.post("/emailValidation", async (req, res) => {
     return res
       .status(500)
       .json({ msg: "Internal Server Error", type: "error" });
+  }
+});
+
+// change state of employee
+router.post("/makeActive", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  try {
+    const authUser = await Admin.findById(userId).select("-password");
+    if (req.admin.otp !== authUser.otp)
+      return res.status(403).json({ msg: "Access Denied", login: false });
+    if (!authUser) {
+      res.status(200).json({ msg: "Access Denied", login: false });
+    } else {
+      const employee = await Employee.findById(req.body.employeeId);
+      if (!employee) {
+        res
+          .status(200)
+          .json({ msg: "Employee is missing", login: true, redirect: true });
+      } else {
+        const changeState = await Employee.findByIdAndUpdate(
+          req.body.employeeId,
+          {
+            $set: {
+              status: true,
+            },
+          }
+        );
+        res.status(200).json({
+          msg: "Employee is Activated",
+          login: true,
+          redirect: false,
+          changeState,
+        });
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+router.post("/makeDeactive", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  try {
+    const authUser = await Admin.findById(userId).select("-password");
+    if (req.admin.otp !== authUser.otp)
+      return res.status(403).json({ msg: "Access Denied", login: false });
+    if (!authUser) {
+      res.status(200).json({ msg: "Access Denied", login: false });
+    } else {
+      const employee = await Employee.findById(req.body.employeeId);
+      if (!employee) {
+        res
+          .status(200)
+          .json({ msg: "Employee is missing", login: true, redirect: true });
+      } else {
+        const changeState = await Employee.findByIdAndUpdate(
+          req.body.employeeId,
+          {
+            $set: {
+              status: false,
+            },
+          }
+        );
+        res.status(200).json({
+          msg: "Employee is Deactivated",
+          login: true,
+          redirect: false,
+          changeState,
+        });
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: "Internal Server Error" });
   }
 });
 
