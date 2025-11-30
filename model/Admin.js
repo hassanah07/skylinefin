@@ -27,8 +27,9 @@ const AdminSchema = new Schema(
     },
     image: {
       type: String,
-      default:
-        "https://greenacresportsmed.com.au/wp-content/uploads/2018/01/dummy-image.jpg",
+    },
+    sign: {
+      type: String,
     },
     role: {
       type: String,
@@ -36,19 +37,16 @@ const AdminSchema = new Schema(
     },
     status: {
       type: Boolean,
-      default: 0,
+      default: true,
     },
     address: {
-      type: Boolean,
-      default: 0,
+      type: String,
     },
     landmark: {
-      type: Boolean,
-      default: 0,
+      type: String,
     },
     area: {
-      type: Boolean,
-      default: 0,
+      type: String,
     },
     login: {
       type: Boolean,
@@ -56,6 +54,10 @@ const AdminSchema = new Schema(
     },
     token: {
       type: String,
+    },
+    isSuperAdmin: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

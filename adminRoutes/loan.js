@@ -205,6 +205,27 @@ router.post("/getLoanUsers", fetchAdmin, async (req, res) => {
       .json({ msg: "Internal Server Error", status: false, err: error });
   }
 });
+// get loan user single
+router.post("/getLoanUser", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  try {
+    const operator = await Admin.findById(userId).select("-password");
+    if (!operator._id) {
+      const getUser = await Customer.find();
+      res.status(200).json({ msg: "No Data Found" });
+      // if () {
+
+      // }
+    } else {
+      const getData = await Customer.findById(req.body.id);
+      res.status(200).json({ getData });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ msg: "Internal Server Error", status: false, err: error });
+  }
+});
 router.post("/createLoanAccount", fetchAdmin, async (req, res) => {
   const userId = req.admin.id;
   try {

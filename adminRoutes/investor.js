@@ -231,7 +231,8 @@ router.post("/getInvestorDetail", fetchAdmin, async (req, res) => {
     if (!authUser) {
       res.status(200).json({ msg: "Access Denied", login: false });
     } else {
-      res.status(200).json({ authUser, login: true });
+      const getData = await Investor.findById(req.body.id);
+      res.status(200).json({ getData, login: true });
     }
   } catch (error) {
     return res.status(500).json({ msg: "Internal Server Error" });

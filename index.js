@@ -21,6 +21,7 @@ app.use(
   })
 );
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use("/uploadsdefault", express.static(path.join(process.cwd(), "uploads")));
 
 app.use(
   bodyParser.urlencoded({
@@ -47,5 +48,5 @@ app.use("/api/loanProcessor", require("./adminRoutes/loan"));
 app.use("/api/loanProcessor/v2", require("./adminRoutes/loanV2"));
 app.use("/api/recurring", require("./adminRoutes/recurring"));
 app.use("/api/tellyCount/", require("./adminRoutes/Count"));
-app.use("/api/image", require("./adminRoutes/uploadLocal"));
+app.use("/api/image", require("./adminRoutes/upload"));
 app.use("/api/adminTxn", require("./adminRoutes/adminTransaction"));

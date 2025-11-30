@@ -8,7 +8,27 @@ const Emi = require("../model/EmiList");
 const Employee = require("../model/Employee");
 
 const router = express.Router();
-
+// count admins
+router.post("/adminCount", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  try {
+    let admin = await Admin.findById(userId);
+    if (admin === null) {
+      return res.status(400).json({
+        msg: "Access Denied",
+        type: "error",
+        status: false,
+        login: false,
+      });
+    }
+    const getData = await Admin.find().sort({ updatedAt: -1 });
+    res.json({ getData, login: true });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ msg: "Server Unavailable", type: "error", login: false });
+  }
+});
 // get EMI Data from DATABASE
 router.post("/customerCount", fetchAdmin, async (req, res) => {
   const userId = req.admin.id;

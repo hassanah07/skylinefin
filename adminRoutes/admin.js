@@ -27,7 +27,10 @@ router.post("/createuser", async (req, res) => {
         name: req.body.name,
         email: req.body.email,
         mobile: req.body.mobile,
+        photo: "/uploadsdefault/avatar.jpg",
+        sign: "/uploadsdefault/sign.png",
         password: hashedPassword,
+        isSuperAdmin: false,
       });
       try {
         const transporter = nodemailer.createTransport({
@@ -291,5 +294,63 @@ router.post("/resetPassword", async (req, res) => {
     return res.status(500).json({ msg: "Internal Server Error", login: false });
   }
 });
+router.post("/getadmindetailbyid", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  try {
+    const authUser = await Admin.findById(userId).select("-password");
+    if (!authUser) {
+      return res.json({ msg: "Access Denied", login: false });
+    } else {
+      const getData = await Admin.findById(req.body.adminId);
+      if (!getData) {
+        res.json({ msg: "Admin Not Found", login: true });
+      } else {
+        res.json({ getData, msg: "Access Granted", login: true });
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+router.post("/makesuperadmin", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  console.log(req.body.id);
+  try {
+    const adminAccess = await Admin.findById(userId);
+    if (!adminAccess) return res.json({ msg: "Access Denied", login: false });
+    if (adminAccess.isSuperAdmin === false) {
+      res.json("Not Authorized");
+    } else {
+      const update = await Admin.findByIdAndUpdate(req.body.id, {
+        $set: {
+          isSuperAdmin: true,
+        },
+      });
 
+      res.json({ update, msg: "Success" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+router.post("/disablemakesuperadmin", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  try {
+    const adminAccess = await Admin.findById(userId);
+    if (!adminAccess) return res.json({ msg: "Access Denied", login: false });
+    if (adminAccess.isSuperAdmin === false) {
+      res.json("Not Authorized");
+    } else {
+      const update = await Admin.findByIdAndUpdate(req.body.id, {
+        $set: {
+          isSuperAdmin: false,
+        },
+      });
+      res.json({ update, msg: "success" });
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
 module.exports = router;

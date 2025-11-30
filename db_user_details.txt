@@ -1,0 +1,3 @@
+db username: skyline
+db password: NMBGVHJVBFJHDBHJ
+connection string: mongodb+srv://skylineefinance:NMBGVHJVBFJHDBHJ@cluster0.lduaufn.mongodb.net/?appName=Cluster0

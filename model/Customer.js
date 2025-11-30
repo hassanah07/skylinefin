@@ -101,6 +101,12 @@ const CustomerSchema = new Schema(
       type: String,
       required: true,
     },
+    image: {
+      type: String,
+    },
+    sign: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
