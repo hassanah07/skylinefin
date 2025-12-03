@@ -68,7 +68,6 @@ router.post("/addInvestor", fetchAdmin, async (req, res) => {
         empId: checkInvestor._id,
       });
     } else {
-      // console.log(req.body);
       const addInvestor = await Investor.create({
         investorId: investorId,
         title: req.body.title,
@@ -90,6 +89,8 @@ router.post("/addInvestor", fetchAdmin, async (req, res) => {
         amount: req.body.amount,
         createdBy: authUser._id,
         profitPercentage: req.body.profitPercentage,
+        isBranch: req.body.isBranch,
+        branchId: branchId,
       });
       res.status(200).json({
         invId: addInvestor._id,
@@ -220,8 +221,7 @@ router.post("/login", async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 });
-// get logged in admin details
-// get user profile from server
+// findById(req.body._id): get Investor profile admin details
 router.post("/getInvestorDetail", fetchAdmin, async (req, res) => {
   const userId = req.admin.id;
   try {
@@ -233,6 +233,55 @@ router.post("/getInvestorDetail", fetchAdmin, async (req, res) => {
     } else {
       const getData = await Investor.findById(req.body.id);
       res.status(200).json({ getData, login: true });
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+// findByIdUpdate(req.body._id): Edit Investor profile
+router.post("/editInvestor", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  try {
+    const authUser = await Admin.findById(userId).select("-password");
+    if (req.admin.otp !== authUser.otp)
+      return res.status(403).json({ msg: "Access Denied", login: false });
+    if (!authUser) {
+      res.status(200).json({ msg: "Access Denied", login: false });
+    } else {
+      let branchId;
+      if (req.body.isBranch === true) {
+        branchId = Number(
+          ((Date.now() * 9000 + Math.floor(performance.now() * 3000)) % 1e8)
+            .toString()
+            .padStart(6, "0")
+        );
+      }
+      console.log(req.body);
+      const getData = await Investor.findByIdAndUpdate(req.body.id, {
+        $set: {
+          title: req.body.title,
+          firstName: req.body.f_name,
+          lastName: req.body.l_name,
+          father: req.body.fatherName,
+          mother: req.body.motherName,
+          spouse: req.body.spouseName,
+          email: req.body.email,
+          phone: req.body.mobile,
+          dob: req.body.dob,
+          pan: req.body.pan,
+          aadhar: req.body.aadhar,
+          voter: req.body.voter,
+          address: req.body.landmark,
+          landmark: req.body.landmark,
+          amount: req.body.amount,
+          profitPercentage: req.body.profitPercentage,
+          isBranch: req.body.isBranch,
+          branchId: branchId,
+        },
+      });
+      res
+        .status(200)
+        .json({ getData, login: true, status: true, msg: "👍Updated" });
     }
   } catch (error) {
     return res.status(500).json({ msg: "Internal Server Error" });
