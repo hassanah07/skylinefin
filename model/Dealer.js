@@ -1,60 +1,71 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const UserSchema = new Schema(
+const DealerSchema = new Schema(
   {
+    dealerId: {
+      type: Number,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
     name: {
+      type: String,
+      required: true,
+    },
+    father: {
       type: String,
       required: true,
     },
     email: {
       type: String,
       required: true,
-      unique: true,
     },
     mobile: {
       type: Number,
       required: true,
-      unique: true,
-      // max: [10, "set a 10 digit mobile number"],
     },
     password: {
       type: String,
       required: true,
-      min: [6, "set a long password"],
     },
     otp: {
       type: Number,
-      // required: true,
-      // unique: true,
+    },
+    otpExpiry: {
+      type: Date,
     },
     image: {
       type: String,
     },
-    desc: {
+    signature: {
       type: String,
     },
-    role: {
+
+    pan: {
       type: String,
-      default: "Author",
+      required: true,
     },
-    level: {
+    aadhar: {
       type: String,
-      default: "Bronze",
+      required: true,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    landmark: {
+      type: String,
+      required: true,
+    },
+    postalData: [],
+    location: {
+      type: String,
+      required: true,
     },
     status: {
-      type: Boolean,
-      default: 0,
-    },
-    deleted: {
-      type: Boolean,
-      default: 0,
-    },
-    monetized: {
-      type: Boolean,
-      default: 0,
-    },
-    withdrawn: {
       type: Boolean,
       default: 0,
     },
@@ -62,13 +73,12 @@ const UserSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    profileId: {
+    token: {
       type: String,
-      default: 111,
     },
   },
   { timestamps: true }
 );
 
-const User = mongoose.model("User", UserSchema);
-module.exports = User;
+const Dealer = mongoose.model("Dealer", DealerSchema);
+module.exports = Dealer;

@@ -50,13 +50,9 @@ const EmployeeSchema = new Schema(
     },
     image: {
       type: String,
-      default:
-        "https://greenacresportsmed.com.au/wp-content/uploads/2018/01/dummy-image.jpg",
     },
     signature: {
       type: String,
-      default:
-        "https://greenacresportsmed.com.au/wp-content/uploads/2018/01/dummy-image.jpg",
     },
 
     pan: {

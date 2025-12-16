@@ -44,6 +44,7 @@ app.use("/api/checkConnection", require("./adminRoutes/checkConnection"));
 app.use("/api/admin", require("./adminRoutes/admin"));
 app.use("/api/employee", require("./adminRoutes/employee"));
 app.use("/api/investor", require("./adminRoutes/investor"));
+app.use("/api/dealer", require("./adminRoutes/dealer"));
 app.use("/api/loanProcessor", require("./adminRoutes/loan"));
 app.use("/api/loanProcessor/v2", require("./adminRoutes/loanV2"));
 app.use("/api/recurring", require("./adminRoutes/recurring"));
