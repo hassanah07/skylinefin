@@ -6,185 +6,182 @@ const AdminWallet = require("../model/Wallet");
 const Loan = require("../model/Loan");
 const Customer = require("../model/Customer");
 const Emi = require("../model/EmiList");
+const mongoose = require("mongoose");
 
 const router = express.Router();
 
 router.post("/txn", fetchAdmin, async (req, res) => {
-  const userId = req.admin.id;
+  const adminId = req.admin.id;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const auth = await Admin.findById(userId);
-    if (!auth) {
-      res.json({ msg: "Please Login Again", login: false });
-    } else {
-      const txnNo = Math.floor(Math.random() * 10000000);
-      let cradit = await AdminWallet.findOne({ txnNo: txnNo });
-      if (!cradit) {
-        if (req.body.isCustomer === true) {
-          cradit = await Loan.findOne({
-            loanAccountNumber: req.body.loanAccountNumber,
-          });
-          const customerData = await Customer.findOne({
-            customerId: cradit.customerId,
-          });
-          cradit = await AdminWallet.create({
-            amount: req.body.amount,
-            txnBy: userId,
-            txnFor: customerData._id,
-            txnId: customerData._id, //have to remove later from here and Module also
-            loanAccountNumber: req.body.loanAccountNumber,
-            txnNo: txnNo,
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      await session.abortTransaction();
+      return res.status(401).json({ msg: "Please Login Again", login: false });
+    }
+
+    // Unique transaction number
+    const txnNo = Date.now();
+
+    // Check duplicate transaction
+    const existingTxn = await AdminWallet.findOne({ txnNo });
+    if (existingTxn) {
+      await session.abortTransaction();
+      return res
+        .status(409)
+        .json({ msg: "Transaction Already Done!", status: true });
+    }
+
+    /* ================= CUSTOMER EMI PAYMENT ================= */
+    if (req.body.isCustomer === true) {
+      const { loanAccountNumber, amount, installmentNo, dueDate } = req.body;
+
+      const loan = await Loan.findOne({ loanAccountNumber });
+      if (!loan) {
+        await session.abortTransaction();
+        return res.status(404).json({ msg: "Loan not found" });
+      }
+
+      const customer = await Customer.findOne({
+        customerId: loan.customerId,
+      });
+
+      if (!customer) {
+        await session.abortTransaction();
+        return res
+          .status(404)
+          .json({ msg: "Customer not found", status: false });
+      }
+
+      // Create wallet transaction
+      await AdminWallet.create(
+        [
+          {
+            amount,
+            txnBy: adminId,
+            txnFor: customer._id,
+            loanAccountNumber,
+            txnNo,
             txnStatus: true,
             isAdmin: true,
             adminApproval: true,
             isCradit: false,
             isEmi: true,
             remarks: "EMI Collection",
-          });
+          },
+        ],
+        { session }
+      );
 
-          cradit = await Emi.findOneAndUpdate(
-            { loanAccountNumber: req.body.loanAccountNumber },
-            {
-              $set: {
-                "emiPayment.$[emi].status": true,
-                "emiPayment.$[emi].paidOn": new Date().toLocaleString(),
-              },
-            },
-            {
-              arrayFilters: [
-                { "emi.emiNumber": req.body.installmentNo.toString() },
-              ],
-            }
-          );
-          // email shotting process start
-          try {
-            const transporter = nodemailer.createTransport({
-              host: "smtp.forwardemail.net",
-              port: 465,
-              secure: true,
-              service: "gmail",
-              auth: {
-                user: process.env.MAILER_USERID,
-                pass: process.env.MAILER_PASSWORD,
-              },
-            });
-            const emailTemplate = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Installment Credited</title>
+      // Update EMI (prevent double payment)
+      const emiUpdate = await Emi.findOneAndUpdate(
+        {
+          loanAccountNumber,
+          "emiPayment.emiNumber": installmentNo.toString(),
+          "emiPayment.status": false,
+        },
+        {
+          $set: {
+            "emiPayment.$.status": true,
+            "emiPayment.$.paidOn": new Date(),
+          },
+        },
+        { new: true, session }
+      );
 
-    <style>
-      body { background:#f7f7f7; font-family:Arial; padding:0; margin:0; }
-      .container { max-width:600px; margin:auto; background:white; border-radius:10px; overflow:hidden; }
-      .header { background:#0d6efd; padding:20px; text-align:center; color:white; }
-      .header img { width:130px; margin-bottom:10px; }
-      table { width:100%; padding:20px; border-collapse:collapse; }
-      td { padding:12px; border-bottom:1px solid #ddd; font-size:15px; }
-      .label { font-weight:bold; color:#444; }
-      .value { font-weight:bold; }
-      .footer { background:#eee; padding:12px; text-align:center; font-size:12px; color:#666 }
-    </style>
-  </head>
-
-  <body>
-    <div class="container">
-      <div class="header">
-        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhZWR81EAPLK-3YRd5Yt74pcrtCAICSr6U_CaHMhxBiV26lnoJctMGMprDReFMxoMUHCIe3fe_mXWys90NGTlrbhNkQyLbLxjwa52d7YqBoWdEKjdj4EHOxG51eWE65VdjB4mf1h4IsbKhoqwtEhHOg9npB-JMlcTYUSZGmzXqa_JzNZXU2CSscQJdkZsA/s1600/2.png" />
-        <h2>Installment Credited Successfully</h2>
-      </div>
-
-      <table>
-        <tr>
-          <td class="label">Installment Amount:</td>
-          <td class="value">₹${req.body.amount}</td>
-        </tr>
-
-        <tr>
-          <td class="label">Installment No:</td>
-          <td class="value">${req.body.installmentNoAa}</td>
-        </tr>
-
-        <tr>
-          <td class="label">For the Month of:</td>
-          <td class="value">
-            ${new Date(req.body.dueDate).toLocaleString("en-US", {
-              month: "long",
-              year: "numeric",
-            })}
-          </td>
-        </tr>
-        <tr>
-          <td class="label">Due Date:</td>
-          <td class="value">
-            ${req.body.dueDate}
-          </td>
-        </tr>
-        <tr>
-          <td class="label">Payment Status:</td>
-          <td class="value">
-          Paid
-          </td>
-        </tr>
-
-        <tr>
-          <td class="label">Transaction Date:</td>
-          <td class="value">${new Date().toLocaleString()}</td>
-        </tr>
-      </table>
-
-      <div class="footer">
-        This is an auto-generated email. Please do not reply.
-      </div>
-    </div>
-  </body>
-  </html>
-  `;
-            async function main() {
-              const info = await transporter.sendMail({
-                from: '"Server Mail"servermail@noreply.com',
-                to: customerData.email,
-                subject: `Installment Cradited`,
-                html: emailTemplate,
-              });
-              res.status(200).json({
-                msg: "Installment Cradited",
-                login: true,
-              });
-            }
-            main().catch((error) => {
-              res
-                .status(500)
-                .json({ msg: "Unable To Send Email", type: "error" });
-            });
-          } catch (error) {
-            res.status(500).json({ msg: "E-Mail Server Error", type: "error" });
-          }
-          // email shotting process end
-        } else {
-          cradit = await AdminWallet.create({
-            amount: req.body.amount,
-            txnBy: userId,
-            txnFor: req.body.txnFor,
-            txnNo: txnNo,
-            txnStatus: true,
-            isAdmin: true,
-            adminApproval: true,
-            isWithdrawn: req.body.isWithdrawn,
-            isRefund: req.body.isRefund,
-            isCradit: req.body.isCradit,
-            remarks: req.body.remarks,
-          });
-          res.json({ msg: "Transaction Successful" });
-        }
-      } else {
-        res.json({ msg: "Transaction Already Done!" });
+      if (!emiUpdate) {
+        await session.abortTransaction();
+        return res.status(400).json({ msg: "EMI already paid or not found" });
       }
+
+      await session.commitTransaction();
+      session.endSession();
+
+      // -------- SEND EMAIL (ASYNC, NO RESPONSE INSIDE) --------
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.MAILER_USERID,
+          pass: process.env.MAILER_PASSWORD,
+        },
+      });
+
+      const emailTemplate = `
+      <!DOCTYPE html>
+      <html>
+      <body style="font-family:Arial;background:#f7f7f7;padding:20px">
+        <div style="max-width:600px;margin:auto;background:#fff;border-radius:8px">
+          <div style="background:#0d6efd;color:white;padding:15px;text-align:center">
+            <h2>Installment Credited Successfully</h2>
+          </div>
+          <table style="width:100%;padding:20px">
+            <tr><td><b>Amount:</b></td><td>₹${amount}</td></tr>
+            <tr><td><b>Installment No:</b></td><td>${installmentNo}</td></tr>
+            <tr><td><b>For Month:</b></td>
+              <td>${new Date(dueDate).toLocaleString("en-US", {
+                month: "long",
+                year: "numeric",
+              })}</td>
+            </tr>
+            <tr><td><b>Status:</b></td><td>Paid</td></tr>
+            <tr><td><b>Date:</b></td><td>${new Date().toLocaleString()}</td></tr>
+          </table>
+          <div style="background:#eee;padding:10px;text-align:center;font-size:12px">
+            Auto generated email. Do not reply.
+          </div>
+        </div>
+      </body>
+      </html>
+      `;
+
+      transporter
+        .sendMail({
+          from: `"Server Mail" <${process.env.MAILER_USERID}>`,
+          to: customer.email,
+          subject: "Installment Credited",
+          html: emailTemplate,
+        })
+        .catch(console.error);
+
+      return res.status(200).json({
+        msg: "Installment Credited Successfully",
+        login: true,
+        status: true,
+      });
     }
+
+    /* ================= NORMAL ADMIN TRANSACTION ================= */
+    await AdminWallet.create(
+      [
+        {
+          amount: req.body.amount,
+          txnBy: adminId,
+          txnFor: req.body.txnFor,
+          txnNo,
+          txnStatus: true,
+          isAdmin: true,
+          adminApproval: true,
+          isWithdrawn: req.body.isWithdrawn,
+          isRefund: req.body.isRefund,
+          isCradit: req.body.isCradit,
+          remarks: req.body.remarks,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({ msg: "Transaction Successful" });
   } catch (error) {
-    console.log([error]);
-    res.status(500).json("Internal Server Error", error);
+    await session.abortTransaction();
+    session.endSession();
+    console.error(error);
+    return res.status(500).json({ msg: "Internal Server Error" });
   }
 });
 

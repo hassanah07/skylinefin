@@ -107,6 +107,20 @@ const CustomerSchema = new Schema(
     sign: {
       type: String,
     },
+    address: {
+      type: String,
+    },
+    landmark: {
+      type: String,
+    },
+    postalData: [],
+    permanentAddress: {
+      type: String,
+    },
+    permanentLandmark: {
+      type: String,
+    },
+    permanentPostalData: [],
   },
   { timestamps: true }
 );

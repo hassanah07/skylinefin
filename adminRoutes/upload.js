@@ -523,4 +523,62 @@ router.get("/listuploads", (req, res) => {
   });
 });
 
+//dealer documents: Upload and create DB record
+router.post(
+  "/dealerDocuments",
+  fetchAdmin,
+  upload.single("document"),
+  async (req, res) => {
+    const userId = req.admin.id;
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file" });
+
+      const fileUrl = `/uploads/${req.file.filename}`;
+
+      // Get previous photo from DB
+      const dealer = await Dealer.findById(req.body.id);
+      if (dealer) {
+        // Update DB
+        const update = await Upload.create({
+          loanAccountNumber: 777777777777777, //15 digit number: 7 means dealer
+          filename: req.file.filename,
+          url: fileUrl,
+          dealerid: req.body.id,
+        });
+
+        res.json({
+          msg: "Document Uploaded",
+          status: true,
+          update,
+        });
+      } else {
+        res.json({
+          msg: "Dealer Not Found",
+          status: false,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ msg: "Upload failed", status: false });
+    }
+  }
+);
+//Dealer document: listout all uploaded documents of LoanAccount Number
+router.post("/dealerdoclist", fetchAdmin, async (req, res) => {
+  try {
+    const list = await Upload.find({
+      dealerid: req.body.id,
+    });
+
+    res.json({
+      msg: `${list.length} Documents Found`,
+      status: true,
+      list,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server Error", status: false });
+  }
+});
+
 module.exports = router;

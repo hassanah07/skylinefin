@@ -11,10 +11,10 @@ const AdminWalletSchema = new Schema(
       type: String,
       required: true,
     },
-    txnId: {
-      type: String,
-      required: true,
-    },
+    // txnId: {
+    //   type: String,
+    //   required: true,
+    // },
     txnFor: {
       type: String,
       required: true,

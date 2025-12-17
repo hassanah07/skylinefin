@@ -6,6 +6,7 @@ const UploadSchema = new mongoose.Schema(
     filename: { type: String },
     url: { type: String },
     userid: { type: String },
+    dealerid: { type: String },
   },
   { timestamps: true }
 );
