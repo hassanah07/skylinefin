@@ -36,6 +36,7 @@ router.post("/createdealer", fetchAdmin, async (req, res) => {
         landmark: req.body.landmark,
         postalData: req.body.postalData,
         password: hashedPassword,
+        location: req.body.location,
       });
       try {
         const transporter = nodemailer.createTransport({
@@ -90,7 +91,17 @@ router.post("/getDealer", fetchAdmin, async (req, res) => {
   const userId = req.admin.id;
   try {
     let dealer = await Dealer.find();
-    res.status.json({ msg: "Ok", dealer });
+    res.json({ msg: "Ok", dealer });
+  } catch (error) {
+    res.json(error);
+  }
+});
+// get dealer with dealer id
+router.post("/getDealerWithDealerId", fetchAdmin, async (req, res) => {
+  const userId = req.admin.id;
+  try {
+    let dealer = await Dealer.findById(req.body.id);
+    res.json({ msg: "Ok", dealer });
   } catch (error) {
     res.json(error);
   }

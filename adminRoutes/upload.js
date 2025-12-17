@@ -9,6 +9,7 @@ const Admin = require("../model/Admin.js");
 const Investor = require("../model/Investor.js");
 const Customer = require("../model/Customer.js");
 const Loan = require("../model/Loan.js");
+const Dealer = require("../model/Dealer.js");
 
 const router = express.Router();
 const UPLOAD_DIR = path.join(process.cwd(), "uploads");
@@ -295,6 +296,138 @@ router.post(
       const update = await Customer.findByIdAndUpdate(
         req.body.id,
         { sign: fileUrl },
+        { new: true }
+      );
+
+      res.json({
+        msg: "Signature Uploaded",
+        status: true,
+        doc: req.file,
+        update,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ msg: "Upload failed", status: false });
+    }
+  }
+);
+//documents: Upload and create DB record
+router.post(
+  "/documents",
+  fetchAdmin,
+  upload.single("document"),
+  async (req, res) => {
+    const userId = req.admin.id;
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file" });
+
+      const fileUrl = `/uploads/${req.file.filename}`;
+
+      const getLoanNo = await Loan.findById(req.body.id);
+      const getUserId = await Customer.findOne({
+        customerId: getLoanNo.customerId,
+      });
+      // Get previous photo from DB
+      const customer = await Customer.findById(req.body.id);
+      if (customer) {
+        const oldPath = path.join(
+          process.cwd(),
+          "uploads",
+          path.basename(customer.sign)
+        );
+      }
+
+      // Update DB
+      const update = await Upload.create({
+        loanAccountNumber: getLoanNo.loanAccountNumber,
+        filename: req.file.filename,
+        url: fileUrl,
+        userid: getUserId._id,
+      });
+
+      res.json({
+        msg: "Document Uploaded",
+        status: true,
+        update,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ msg: "Upload failed", status: false });
+    }
+  }
+);
+
+// Dealers uploads
+//photo: Upload and create DB record
+router.post(
+  "/dealerphoto",
+  fetchAdmin,
+  upload.single("photo"),
+  async (req, res) => {
+    const userId = req.admin.id;
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file" });
+
+      const fileUrl = `/uploads/${req.file.filename}`;
+
+      // Get previous photo from DB
+      const dealer = await Dealer.findById(req.body.id);
+      if (dealer.image) {
+        const fs = require("fs");
+        const oldPath = path.join(
+          process.cwd(),
+          "uploads",
+          path.basename(dealer.image)
+        );
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath); // Delete previous file
+        }
+      }
+
+      // Update DB
+      const update = await Dealer.findByIdAndUpdate(
+        req.body.id,
+        { image: fileUrl },
+        { new: true }
+      );
+
+      res.json({ msg: "Image Uploaded", status: true, doc: req.file, update });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ msg: "Upload failed", status: false });
+    }
+  }
+);
+//sign: Upload and create DB record
+router.post(
+  "/dealersign",
+  fetchAdmin,
+  upload.single("sign"),
+  async (req, res) => {
+    const userId = req.admin.id;
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file" });
+
+      const fileUrl = `/uploads/${req.file.filename}`;
+
+      // Get previous photo from DB
+      const dealer = await Dealer.findById(req.body.id);
+      if (dealer.sign) {
+        const fs = require("fs");
+        const oldPath = path.join(
+          process.cwd(),
+          "uploads",
+          path.basename(dealer.sign)
+        );
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath); // Delete previous file
+        }
+      }
+
+      // Update DB
+      const update = await Dealer.findByIdAndUpdate(
+        req.body.id,
+        { signature: fileUrl },
         { new: true }
       );
 
