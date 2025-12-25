@@ -98,7 +98,6 @@ router.post("/getDealer", fetchAdmin, async (req, res) => {
 });
 // get dealer with dealer id
 router.post("/getDealerWithDealerId", fetchAdmin, async (req, res) => {
-  const userId = req.admin.id;
   try {
     let dealer = await Dealer.findById(req.body.id);
     res.json({ msg: "Ok", dealer });

@@ -10,6 +10,8 @@ const Investor = require("../model/Investor.js");
 const Customer = require("../model/Customer.js");
 const Loan = require("../model/Loan.js");
 const Dealer = require("../model/Dealer.js");
+const Employee = require("../model/Employee.js");
+const Company = require("../model/Company.js");
 
 const router = express.Router();
 const UPLOAD_DIR = path.join(process.cwd(), "uploads");
@@ -417,7 +419,7 @@ router.post(
         const oldPath = path.join(
           process.cwd(),
           "uploads",
-          path.basename(dealer.sign)
+          path.basename(dealer.signature)
         );
         if (fs.existsSync(oldPath)) {
           fs.unlinkSync(oldPath); // Delete previous file
@@ -580,5 +582,131 @@ router.post("/dealerdoclist", fetchAdmin, async (req, res) => {
     res.status(500).json({ msg: "Server Error", status: false });
   }
 });
+// Employee uploads
+//Employee photo: Upload and create DB record
+router.post(
+  "/empPhoto",
+  fetchAdmin,
+  upload.single("photo"),
+  async (req, res) => {
+    const userId = req.admin.id;
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file" });
+
+      const fileUrl = `/uploads/${req.file.filename}`;
+
+      // Get previous photo from DB
+      const employee = await Employee.findById(req.body.id);
+      if (employee.image) {
+        const fs = require("fs");
+        const oldPath = path.join(
+          process.cwd(),
+          "uploads",
+          path.basename(employee.image)
+        );
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath); // Delete previous file
+        }
+      }
+
+      // Update DB
+      const update = await Employee.findByIdAndUpdate(
+        req.body.id,
+        { image: fileUrl },
+        { new: true }
+      );
+
+      res.json({ msg: "Image Uploaded", status: true, doc: req.file, update });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ msg: "Upload failed", status: false });
+    }
+  }
+);
+//Employee sign: Upload and create DB record
+router.post("/empSign", fetchAdmin, upload.single("sign"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file" });
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    // Get previous photo from DB
+    const employee = await Employee.findById(req.body.id);
+    if (employee.sign) {
+      const fs = require("fs");
+      const oldPath = path.join(
+        process.cwd(),
+        "uploads",
+        path.basename(employee.signature)
+      );
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath); // Delete previous file
+      }
+    }
+
+    // Update DB
+    const update = await Employee.findByIdAndUpdate(
+      req.body.id,
+      { signature: fileUrl },
+      { new: true }
+    );
+
+    res.json({
+      msg: "Signature Uploaded",
+      status: true,
+      // doc: req.file,
+      update,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Upload failed", status: false });
+  }
+});
+
+//Company Sign: Upload and create DB record
+router.post(
+  "/companySign",
+  fetchAdmin,
+  upload.single("sign"),
+  async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file" });
+
+      const fileUrl = `/uploads/${req.file.filename}`;
+
+      // Get previous sign from DB
+      const company = await Company.find(req.body.id);
+
+      if (company[0].sign) {
+        const fs = require("fs");
+        const oldPath = path.join(
+          process.cwd(),
+          "uploads",
+          path.basename(company[0].sign)
+        );
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath); // Delete previous file
+        }
+      }
+
+      // Update DB
+      const update = await Company.findByIdAndUpdate(
+        company[0]._id,
+        { sign: fileUrl },
+        { new: true }
+      );
+
+      res.json({
+        msg: "Signature Uploaded",
+        status: true,
+        // doc: req.file,
+        update,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ msg: "Upload failed", status: false });
+    }
+  }
+);
 
 module.exports = router;

@@ -40,6 +40,7 @@ app.listen(port, () => {
   console.log(`Great! Happy Hacking with port ${port}`);
 });
 
+app.use("/api/company", require("./adminRoutes/company"));
 app.use("/api/checkConnection", require("./adminRoutes/checkConnection"));
 app.use("/api/admin", require("./adminRoutes/admin"));
 app.use("/api/employee", require("./adminRoutes/employee"));

@@ -184,5 +184,43 @@ router.post("/txn", fetchAdmin, async (req, res) => {
     return res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+router.post("/getTxnByLoanAccountNumber", fetchAdmin, async (req, res) => {
+  const adminId = req.admin.id;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      // await session.abortTransaction();
+      return res.status(401).json({ msg: "Please Login Again", login: false });
+    }
+    // find Customer Id
+    const findCustomerId = await Loan.findOne({
+      loanAccountNumber: req.body.loanAccountNumber,
+    });
+    const customerUid = findCustomerId._id;
+    console.log(typeof customerUid);
+    const customerId = findCustomerId.customerId;
+    // get customer details
+    const customer = await Customer.findOne({ customerId: customerId });
+    // get loan emi transactions
+    const emiTxn = await AdminWallet.find({
+      loanAccountNumber: req.body.loanAccountNumber,
+    });
+    const loanDetails = await Loan.findOne({
+      loanAccountNumber: req.body.loanAccountNumber,
+    });
+    const emis = await Emi.findOne({
+      loanAccountNumber: req.body.loanAccountNumber,
+    });
+    // const txn = await AdminWallet.find({
+    //   txnFor: new mongoose.Types.ObjectId(customerUid),
+    // });
+    res.json({ customer, emiTxn, loanDetails, emis });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
 
 module.exports = router;

@@ -38,11 +38,11 @@ const AdminWalletSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    isMarchant: {
+    isDealer: {
       type: Boolean,
       default: false,
     },
-    isInvestor: {
+    isBranch: {
       type: Boolean,
       default: false,
     },

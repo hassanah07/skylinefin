@@ -1,53 +1,59 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
+const ScheduleSchema = new Schema(
+  {
+    period: { type: Number, required: true },
+    payment: { type: Number, required: true },
+    interest: { type: Number, required: true },
+    balance: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 const RecurringSchema = new Schema(
   {
-    customerId: {
-      type: Number,
-      required: true,
-    },
-    recurringId: {
-      type: Number,
-      required: true,
-    },
-    email: {
-      type: Number,
-      required: true,
-    },
-    amount: {
-      type: Number,
-      required: true,
-    },
+    customerId: { type: Number, required: true },
+    recurringId: { type: Number, required: true },
+    email: { type: String, required: true },
+    amount: { type: Number, required: true },
+
     frequency: {
       type: Number,
       required: true,
+      // 1 = monthly, 2 = weekly, 3 = daily (example)
     },
-    cashfree: {
-      type: Number,
+
+    cashfree: { type: Number, required: true },
+    repaymentPeriod: { type: Number, required: true },
+    interestPercentage: { type: String, required: true },
+
+    /** ✅ NEW FIELDS **/
+    startDate: {
+      type: Date,
       required: true,
     },
-    repaymentPeriod: {
-      type: Number,
+
+    nextPaymentDate: {
+      type: Date,
       required: true,
+      index: true, // useful for cron jobs
     },
-    interestPercentage: {
-      type: String,
-      required: true,
-    },
-    schedule: [],
+
+    schedule: [ScheduleSchema],
+
     recurringPayment: [
       {
-        recurringNumber: { type: String },
-        txnNumber: { type: String },
-        month: { type: Number },
-        opening: { type: Number },
-        recurring: { type: Number },
-        principal: { type: Number },
-        interest: { type: Number },
-        fine: { type: Number },
-        closing: { type: Number },
-        dueDate: { type: String },
+        recurringNumber: String,
+        txnNumber: String,
+        month: Number,
+        opening: Number,
+        recurring: Number,
+        principal: Number,
+        interest: Number,
+        fine: Number,
+        closing: Number,
+        dueDate: Date,
         status: { type: Boolean, default: false },
       },
     ],
@@ -55,5 +61,4 @@ const RecurringSchema = new Schema(
   { timestamps: true }
 );
 
-const Recurring = mongoose.model("Recurring", RecurringSchema);
-module.exports = Emi;
+module.exports = mongoose.model("RecurringList", RecurringSchema);
