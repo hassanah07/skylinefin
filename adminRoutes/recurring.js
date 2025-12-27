@@ -12,6 +12,7 @@ const {
   getDuesByRecurringId,
   getFullSchedule,
   paySpecificPayment,
+  unpaySpecificPayment,
 } = require("../controllers/recurringController");
 
 const router = express.Router();
@@ -247,7 +248,7 @@ router.post("/StepI", fetchAdmin, async (req, res) => {
             .padStart(8, "0")
         );
         getLoanData = await Recurring.create({
-          customerId: getLoanData.id,
+          customerId: req.body.id,
           recurringId: recurringId,
           email: getLoanData.email,
           amount: parseInt(req.body.amount),
@@ -567,10 +568,11 @@ router.post("/StepIV", fetchAdmin, async (req, res) => {
 
 // send and Save emi data: to users email id and save & update EMI Data to Database
 router.post("/save", fetchAdmin, createRecurring);
-router.post("/recurring/next-payment", fetchAdmin, updateNextPaymentDate);
-router.post("/recurring/dues", fetchAdmin, getDuesByRecurringId);
+router.post("/next-payment", fetchAdmin, updateNextPaymentDate);
+router.post("/dues", fetchAdmin, getDuesByRecurringId);
 router.post("/schedule", getFullSchedule);
-router.patch("/recurring/pay", fetchAdmin, paySpecificPayment);
+router.post("/pay", fetchAdmin, paySpecificPayment);
+router.post("/unpay", fetchAdmin, unpaySpecificPayment);
 
 // get EMI Data from DATABASE
 router.post("/getCustomerAmortizationData", fetchAdmin, async (req, res) => {
