@@ -39,7 +39,7 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Great! Happy Hacking with port ${port}`);
 });
-
+// admin routes
 app.use("/api/company", require("./adminRoutes/company"));
 app.use("/api/checkConnection", require("./adminRoutes/checkConnection"));
 app.use("/api/admin", require("./adminRoutes/admin"));
@@ -52,3 +52,8 @@ app.use("/api/recurring", require("./adminRoutes/recurring"));
 app.use("/api/tellyCount/", require("./adminRoutes/Count"));
 app.use("/api/image", require("./adminRoutes/upload"));
 app.use("/api/adminTxn", require("./adminRoutes/adminTransaction"));
+// employee routes
+app.use("/api/employee/v2", require("./empoyeeRoutes/employee"));
+app.use("/api/tellyCount/v2", require("./empoyeeRoutes/Count"));
+app.use("/api/dealer/v2", require("./empoyeeRoutes/dealer"));
+app.use("/api/company/v2", require("./empoyeeRoutes/company"));
